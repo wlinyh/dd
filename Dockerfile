@@ -11,4 +11,5 @@ COPY upload /var/www/scripts
 RUN chmod +x /var/www/init && chmod +x /var/www/scripts/upload
 RUN chown -R www-data:www-data /var/www
 
-CMD spawn-fcgi -s /var/run/fcgiwrap.socket -u www-data -- /usr/sbin/fcgiwrap && nginx -g 'daemon off;'
+EXPOSE 443
+CMD spawn-fcgi -s /var/run/fcgiwrap.socket -u www-data -- /usr/sbin/fcgiwrap && nginx && tail -f /var/log/nginx/error.log /var/log/nginx/access.log | grep -v password
