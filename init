@@ -1,0 +1,39 @@
+#!/bin/sh
+echo "Content-type:application/json\r\n"
+
+get_param() {
+    qs=$1
+    param=$2
+    IFS="&" ; set -- $qs
+    for i in $*; do
+        IFS="=" ; set -- $i
+        if [ "$1" = "$param" ]; then
+            echo $2
+            break
+        fi
+    done
+}
+
+saveIFS=IFS
+username=$(get_param $QUERY_STRING "username")
+password=$(get_param $QUERY_STRING "password")
+IFS=saveIFS
+if [ ! -s /etc/nginx/.htpasswd ]; then
+    if [ ! -z "$password" ] && [ ! -z "$username" ]; then
+        /usr/bin/htpasswd -b -c /etc/nginx/.htpasswd "$username" "$password"
+        errno=$?
+        if [ "$errno" = "0" ]; then
+            echo "{\"status\": \"ok\", \"message\": \"username/passowrd set\"}"
+            exit 0
+        else
+            echo "{\"status\": \"failed\", \"message\": \"can't update. error code $errno.\"}"
+            exit 2
+        fi
+    else
+        echo "{\"status\": \"failed\", \"message\": \"username/passowrd incomplete\"}"
+        exit 1
+    fi
+else
+    echo "{\"status\": \"failed\", \"message\": \"username/passowrd already set\"}"
+    exit -1
+fi

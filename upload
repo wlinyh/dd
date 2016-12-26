@@ -1,0 +1,27 @@
+#!/bin/sh
+# -*- coding: utf-8 -*-
+
+echo "Content-type:application/json\r\n"
+
+get_param() {
+    qs=$1
+    param=$2
+    IFS="&" ; set -- $qs
+    for i in $*; do
+        IFS="=" ; set -- $i
+        if [ "$1" = "$param" ]; then
+            echo $2
+            break
+        fi
+    done
+}
+
+filename=$(get_param $QUERY_STRING "filename")
+echo "$filename"
+
+echo "$REQUEST_METHOD"
+if [ "$REQUEST_METHOD" = "POST" ] && [ ! -z "$filename" ]; then
+    mv "$REQUEST_BODY_FILE" "$DOCUMENT_ROOT/scripts/$filename"
+    chmod +x "$DOCUMENT_ROOT/scripts/$filename"
+    echo "{\"status\": \"ok\", \"message\": \"$filename uploaded\"}"
+fi
